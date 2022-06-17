@@ -49,10 +49,10 @@ local function string_split_trimmed(String, Separator)
     return parts
 end
 
-local function find_limit(content, starti, endi, dir)
+local function find_limit(lines, starti, endi, dir)
     for rowi=starti,endi,dir
     do
-        if not string_starts(string_trim(content[rowi]), SEP_STRING)
+        if not string_starts(string_trim(lines[rowi]), SEP_STRING)
         then
             return rowi - dir
         end
@@ -64,8 +64,8 @@ local function cells_for_line(line)
     return string_split_trimmed(line, SEP_STRING)
 end
 
-local function get_trimed_lines(content, start_line, end_line)
-    local lines = table.move(content, start_line, end_line, 1, {})
+local function get_trimed_lines(lines, start_line, end_line)
+    local lines = table.move(lines, start_line, end_line, 1, {})
     for i, line in ipairs(lines)
     do
         lines[i] = string_trim(line)
@@ -112,7 +112,7 @@ local function print_matrix(matrix)
             end
         end
     end
-    new_content = {}
+    new_lines = {}
     for row, cells in ipairs(matrix)
     do
         line = SEP_STRING
@@ -144,32 +144,37 @@ local function print_matrix(matrix)
                 end
             end
         end
-        new_content[row] = line
+        new_lines[row] = line
     end
-    return new_content
+    return new_lines
 end
 
-function M.tableize()
-    local pos = vim.api.nvim_win_get_cursor(0)
-    local row = pos[1]
-    local col = pos[2]
+local function tablize_under_cursor(lines, cursor_pos)
+    local line_count = #lines
+    local row, col = unpack(cursor_pos)
 
-    local line_count = vim.api.nvim_buf_line_count(0)
-    local content = vim.api.nvim_buf_get_lines(0, 0, line_count, false)
-
-    if not string_starts(string_trim(content[row]), SEP_STRING)
+    if not string_starts(string_trim(lines[row]), SEP_STRING)
     then
         return
     end
 
-    local start_line = find_limit(content, row, 1, -1)
-    local end_line = find_limit(content, row, line_count, 1)
+    local start_line = find_limit(lines, row, 1, -1)
+    local end_line = find_limit(lines, row, line_count, 1)
 
-    local table_lines = get_trimed_lines(content, start_line, end_line)
+    local table_lines = get_trimed_lines(lines, start_line, end_line)
     local matrix = fill_matrix(table_lines)
-    local new_content = print_matrix(matrix)
+    local new_lines = print_matrix(matrix)
 
-    vim.api.nvim_buf_set_lines(0, start_line-1, end_line, false, new_content)
+    return { new_lines, start_line, end_line }
+end
+
+function M.tableize()
+    local cursor_pos = vim.api.nvim_win_get_cursor(0)
+    local line_count = vim.api.nvim_buf_line_count(0)
+    local lines = vim.api.nvim_buf_get_lines(0, 0, line_count, false)
+    local new_lines, start_line, end_line = unpack(tablize_under_cursor(lines, cursor_pos))
+
+    vim.api.nvim_buf_set_lines(0, start_line-1, end_line, false, new_lines)
 end
 
 return M
