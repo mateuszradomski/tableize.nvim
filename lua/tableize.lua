@@ -33,7 +33,12 @@ local function string_trim(String)
         end
     end
 
-    return string.sub(String, leftlim, rightlim)
+    if leftlim == nil or rightlim == nil
+    then
+        return ""
+    else
+        return string.sub(String, leftlim, rightlim)
+    end
 end
 
 local function string_split_trimmed(String, Separator)
