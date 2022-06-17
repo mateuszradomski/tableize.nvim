@@ -10,7 +10,7 @@ local function is_whitespace(c)
     return c == 0x20 or (c >= 0x09 and c <= 0x0d)
 end
 
-local function string_trim(String)
+local function string_trim_stats(String)
     local slen = string.len(String)
     local leftlim = nil
     local rightlim = nil
@@ -35,10 +35,16 @@ local function string_trim(String)
 
     if leftlim == nil or rightlim == nil
     then
-        return ""
+        return { "", 0, 0 }
     else
-        return string.sub(String, leftlim, rightlim)
+        leftcut = leftlim - 1
+        rightcut = slen - rightlim
+        return { string.sub(String, leftlim, rightlim), leftcut, rightcut }
     end
+end
+
+local function string_trim(String)
+    return string_trim_stats(String)[1]
 end
 
 local function string_split_trimmed(String, Separator)
@@ -65,12 +71,14 @@ local function cells_for_line(line)
 end
 
 local function get_trimed_lines(lines, start_line, end_line)
+    local leftcut_min = 0xffffffff -- assume 32 bit
     local lines = table.move(lines, start_line, end_line, 1, {})
     for i, line in ipairs(lines)
     do
-        lines[i] = string_trim(line)
+        lines[i], leftcut, rightcut = unpack(string_trim_stats(line))
+        leftcut_min = math.min(leftcut_min, leftcut)
     end
-    return lines
+    return { lines, leftcut_min }
 end
 
 local function fill_matrix(lines)
@@ -95,7 +103,7 @@ local function line_is_horizontal_separator(cells)
     return is_hline
 end
 
-local function print_matrix(matrix)
+local function print_matrix(matrix, left_padding)
     max_column_len = {}
     for row, cells in ipairs(matrix)
     do
@@ -115,41 +123,33 @@ local function print_matrix(matrix)
     new_lines = {}
     for row, cells in ipairs(matrix)
     do
-        line = SEP_STRING
+        line = string.rep(" ", left_padding) .. SEP_STRING
+
         if line_is_horizontal_separator(cells)
         then
             for col, max_len in ipairs(max_column_len)
             do
-                pluses = string.rep("-", max_column_len[col] + 2)
-                fmt = ""
-                if col == #max_column_len
-                then
-                    fmt = "%s" .. SEP_STRING
-                else
-                    fmt = "%s+"
-                end
-                line = line .. string.format(fmt, pluses)
+                separator = string.rep("-", max_column_len[col] + 2)
+                fmt = (col == #max_column_len) and "%s" .. SEP_STRING or "%s+"
+                line = line .. string.format(fmt, separator)
             end
         else
             for col, max_len in ipairs(max_column_len)
             do
                 cell = cells[col] 
-                if cell == nil
-                then
-                    spaces = string.rep(" ", max_column_len[col])
-                    line = line .. string.format(" %s " .. SEP_STRING, spaces)
-                else
-                    spaces = string.rep(" ", max_column_len[col] - string.len(cell))
-                    line = line .. string.format(" %s%s " .. SEP_STRING, spaces, cell)
-                end
+                v = (cell == nil) and "" or cell
+                space_num = (cell == nil) and max_column_len[col] or max_column_len[col] - string.len(cell)
+                spaces = string.rep(" ", space_num)
+                line = line .. string.format(" %s%s " .. SEP_STRING, spaces, v)
             end
         end
+
         new_lines[row] = line
     end
     return new_lines
 end
 
-local function tablize_under_cursor(lines, cursor_pos)
+function M.tablize_under_cursor(lines, cursor_pos)
     local line_count = #lines
     local row, col = unpack(cursor_pos)
 
@@ -161,9 +161,9 @@ local function tablize_under_cursor(lines, cursor_pos)
     local start_line = find_limit(lines, row, 1, -1)
     local end_line = find_limit(lines, row, line_count, 1)
 
-    local table_lines = get_trimed_lines(lines, start_line, end_line)
+    local table_lines, left_padding = unpack(get_trimed_lines(lines, start_line, end_line))
     local matrix = fill_matrix(table_lines)
-    local new_lines = print_matrix(matrix)
+    local new_lines = print_matrix(matrix, left_padding)
 
     return { new_lines, start_line, end_line }
 end
@@ -172,7 +172,7 @@ function M.tableize()
     local cursor_pos = vim.api.nvim_win_get_cursor(0)
     local line_count = vim.api.nvim_buf_line_count(0)
     local lines = vim.api.nvim_buf_get_lines(0, 0, line_count, false)
-    local new_lines, start_line, end_line = unpack(tablize_under_cursor(lines, cursor_pos))
+    local new_lines, start_line, end_line = unpack(M.tablize_under_cursor(lines, cursor_pos))
 
     vim.api.nvim_buf_set_lines(0, start_line-1, end_line, false, new_lines)
 end
