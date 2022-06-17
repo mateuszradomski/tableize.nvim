@@ -135,7 +135,7 @@ local function print_matrix(matrix)
                     line = line .. string.format(" %s " .. SEP_STRING, spaces)
                 else
                     spaces = string.rep(" ", max_column_len[col] - string.len(cell))
-                    line = line .. string.format(" %s%s " .. SEP_STRING, cell, spaces)
+                    line = line .. string.format(" %s%s " .. SEP_STRING, spaces, cell)
                 end
             end
         end
