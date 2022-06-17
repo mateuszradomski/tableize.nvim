@@ -6,8 +6,34 @@ local function string_starts(String, Start)
    return string.sub(String,1,string.len(Start))==Start
 end
 
+local function is_whitespace(c)
+    return c == 0x20 or (c >= 0x09 and c <= 0x0d)
+end
+
 local function string_trim(String)
-    return string.match(String, "^%s*(.-)%s*$")
+    local slen = string.len(String)
+    local leftlim = nil
+    local rightlim = nil
+
+    for i=1,slen
+    do
+        if not is_whitespace(string.byte(String, i))
+        then
+            leftlim = i
+            break
+        end
+    end
+
+    for i=slen,1,-1
+    do
+        if not is_whitespace(string.byte(String, i))
+        then
+            rightlim = i
+            break
+        end
+    end
+
+    return string.sub(String, leftlim, rightlim)
 end
 
 local function string_split_trimmed(String, Separator)
