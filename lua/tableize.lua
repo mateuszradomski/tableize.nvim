@@ -71,11 +71,18 @@ local function string_trim(String)
     return string_trim_stats(String)[1]
 end
 
-local function string_split_trimmed(String, Separator)
+function string_split_trimmed(String, Separator)
     local parts = {}
-    for str in string.gmatch(String, "([^"..Separator.."]+)") do
-            table.insert(parts, string_trim(str))
+    local left = nil
+    for i=1,#String do
+        if String:byte(i) == Separator:byte(1) then
+            if not (left == nil) then 
+                table.insert(parts, string_trim(String:sub(left+1, i-1)))
+            end
+            left = i
+        end
     end
+
     return parts
 end
 
