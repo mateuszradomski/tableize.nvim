@@ -2,6 +2,30 @@
 local SEP_STRING = "|"
 local M = {}
 
+local function string_utf8_len(String)
+    local len = 0
+    local i = 1
+    local slen = string.len(String)
+    while(i <= slen)
+    do
+        b = String:byte(i)
+        if b < 128 then
+            len = len + 1
+            i = i + 1
+        elseif b >= 240 then
+            len = len + 1
+            i = i + 4
+        elseif b >= 224 then
+            len = len + 1
+            i = i + 3
+        elseif b >= 192 then
+            len = len + 1
+            i = i + 2
+        end
+    end
+    return len
+end
+
 local function string_starts(String, Start)
    return string.sub(String,1,string.len(Start))==Start
 end
@@ -113,9 +137,9 @@ local function print_matrix(matrix, left_padding)
             do
                 if max_column_len[col] == nil
                 then
-                    max_column_len[col] = string.len(cell)
+                    max_column_len[col] = string_utf8_len(cell)
                 else
-                    max_column_len[col] = math.max(max_column_len[col], string.len(cell))
+                    max_column_len[col] = math.max(max_column_len[col], string_utf8_len(cell))
                 end
             end
         end
@@ -138,7 +162,7 @@ local function print_matrix(matrix, left_padding)
             do
                 cell = cells[col] 
                 v = (cell == nil) and "" or cell
-                space_num = (cell == nil) and max_column_len[col] or max_column_len[col] - string.len(cell)
+                space_num = (cell == nil) and max_column_len[col] or max_column_len[col] - string_utf8_len(cell)
                 spaces = string.rep(" ", space_num)
                 line = line .. string.format(" %s%s " .. SEP_STRING, spaces, v)
             end
