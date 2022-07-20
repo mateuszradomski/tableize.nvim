@@ -186,7 +186,7 @@ function M.tablize_under_cursor(lines, cursor_pos)
 
     if not string_starts(string_trim(lines[row]), SEP_STRING)
     then
-        return
+        return nil
     end
 
     local start_line = find_limit(lines, row, 1, -1)
@@ -203,9 +203,12 @@ function M.tableize()
     local cursor_pos = vim.api.nvim_win_get_cursor(0)
     local line_count = vim.api.nvim_buf_line_count(0)
     local lines = vim.api.nvim_buf_get_lines(0, 0, line_count, false)
-    local new_lines, start_line, end_line = unpack(M.tablize_under_cursor(lines, cursor_pos))
+    local result = M.tablize_under_cursor(lines, cursor_pos)
 
-    vim.api.nvim_buf_set_lines(0, start_line-1, end_line, false, new_lines)
+    if result then
+        local new_lines, start_line, end_line = unpack(result)
+        vim.api.nvim_buf_set_lines(0, start_line-1, end_line, false, new_lines)
+    end
 end
 
 return M
