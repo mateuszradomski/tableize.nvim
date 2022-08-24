@@ -182,7 +182,9 @@ local function print_matrix(matrix, left_padding, contains_utf8)
     new_lines = {}
     for row, cells in ipairs(matrix)
     do
-        line = string.rep(" ", left_padding) .. SEP_STRING
+        tab = {}
+        tab[#tab + 1] = string.rep(" ", left_padding)
+        tab[#tab + 1] = SEP_STRING
 
         if line_is_horizontal_separator(cells)
         then
@@ -190,7 +192,7 @@ local function print_matrix(matrix, left_padding, contains_utf8)
             do
                 separator = string.rep("-", max_column_len[col] + 2)
                 fmt = (col == #max_column_len) and "%s" .. SEP_STRING or "%s+"
-                line = line .. string.format(fmt, separator)
+                tab[#tab + 1] = string.format(fmt, separator)
             end
         else
             for col, max_len in ipairs(max_column_len)
@@ -198,11 +200,15 @@ local function print_matrix(matrix, left_padding, contains_utf8)
                 cell = cells[col] 
                 v = (cell == nil) and "" or cell
                 space_num = (cell == nil) and max_column_len[col] or max_column_len[col] - (contains_utf8 and string_utf8_len(cell) or #cell)
-                line = line .. spaces[space_num+1] .. v .. " " .. SEP_STRING
+
+                tab[#tab + 1] = spaces[space_num+1]
+                tab[#tab + 1] = v
+                tab[#tab + 1] = " "
+                tab[#tab + 1] = SEP_STRING
             end
         end
 
-        new_lines[row] = line
+        new_lines[row] = table.concat(tab)
     end
     return new_lines
 end
