@@ -112,6 +112,21 @@ local function get_trimed_lines(lines, start_line, end_line)
     return { lines, leftcut_min }
 end
 
+local function has_utf8(lines)
+    local matrix = {}
+    for row,line in ipairs(lines)
+    do
+        for i=1,#line
+        do
+            if line:byte(i) >= 128
+            then
+                return true
+            end
+        end
+    end
+    return false
+end
+
 local function fill_matrix(lines)
     local matrix = {}
     for row,line in ipairs(lines)
@@ -134,7 +149,7 @@ local function line_is_horizontal_separator(cells)
     return is_hline
 end
 
-local function print_matrix(matrix, left_padding)
+local function print_matrix(matrix, left_padding, contains_utf8)
     max_column_len = {}
     local biggest_column = 0
     for row, cells in ipairs(matrix)
@@ -145,9 +160,9 @@ local function print_matrix(matrix, left_padding)
             do
                 if max_column_len[col] == nil
                 then
-                    max_column_len[col] = string_utf8_len(cell)
+                    max_column_len[col] = contains_utf8 and string_utf8_len(cell) or #cell
                 else
-                    max_column_len[col] = math.max(max_column_len[col], string_utf8_len(cell))
+                    max_column_len[col] = math.max(max_column_len[col], contains_utf8 and string_utf8_len(cell) or #cell)
                 end
             end
         end
@@ -182,7 +197,7 @@ local function print_matrix(matrix, left_padding)
             do
                 cell = cells[col] 
                 v = (cell == nil) and "" or cell
-                space_num = (cell == nil) and max_column_len[col] or max_column_len[col] - string_utf8_len(cell)
+                space_num = (cell == nil) and max_column_len[col] or max_column_len[col] - (contains_utf8 and string_utf8_len(cell) or #cell)
                 line = line .. spaces[space_num+1] .. v .. " " .. SEP_STRING
             end
         end
@@ -205,8 +220,9 @@ function M.tablize_under_cursor(lines, cursor_pos)
     local end_line = find_limit(lines, row, line_count, 1)
 
     local table_lines, left_padding = unpack(get_trimed_lines(lines, start_line, end_line))
+    local contains_utf8 = has_utf8(table_lines)
     local matrix = fill_matrix(table_lines)
-    local new_lines = print_matrix(matrix, left_padding)
+    local new_lines = print_matrix(matrix, left_padding, contains_utf8)
 
     return { new_lines, start_line, end_line }
 end
