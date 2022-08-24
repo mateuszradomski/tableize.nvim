@@ -136,6 +136,7 @@ end
 
 local function print_matrix(matrix, left_padding)
     max_column_len = {}
+    local biggest_column = 0
     for row, cells in ipairs(matrix)
     do
         if not line_is_horizontal_separator(cells)
@@ -151,6 +152,18 @@ local function print_matrix(matrix, left_padding)
             end
         end
     end
+
+    for col, max_len in ipairs(max_column_len)
+    do
+        biggest_column = math.max(biggest_column, max_len)
+    end
+    
+    local spaces = {}
+    for i=1,biggest_column+1
+    do
+        spaces[i] = string.rep(" ", i)
+    end
+
     new_lines = {}
     for row, cells in ipairs(matrix)
     do
@@ -170,8 +183,7 @@ local function print_matrix(matrix, left_padding)
                 cell = cells[col] 
                 v = (cell == nil) and "" or cell
                 space_num = (cell == nil) and max_column_len[col] or max_column_len[col] - string_utf8_len(cell)
-                spaces = string.rep(" ", space_num)
-                line = line .. " " .. spaces .. v .. " " .. SEP_STRING
+                line = line .. spaces[space_num+1] .. v .. " " .. SEP_STRING
             end
         end
 
