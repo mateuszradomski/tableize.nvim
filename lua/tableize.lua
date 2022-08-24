@@ -79,7 +79,7 @@ function string_split_trimmed(String, Separator)
     for i=1,#String do
         if String:byte(i) == Separator:byte(1) then
             if not (left == nil) then 
-                table.insert(parts, string_trim(String:sub(left+1, i-1)))
+                parts[#parts+1] = string_trim(String:sub(left+1, i-1))
             end
             left = i
         end
@@ -133,7 +133,7 @@ local function fill_matrix(lines)
     local matrix = {}
     for row,line in ipairs(lines)
     do
-        table.insert(matrix, cells_for_line(line))
+        matrix[#matrix+1] = cells_for_line(line)
     end
     return matrix
 end
