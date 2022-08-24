@@ -171,7 +171,7 @@ local function print_matrix(matrix, left_padding)
                 v = (cell == nil) and "" or cell
                 space_num = (cell == nil) and max_column_len[col] or max_column_len[col] - string_utf8_len(cell)
                 spaces = string.rep(" ", space_num)
-                line = line .. string.format(" %s%s " .. SEP_STRING, spaces, v)
+                line = line .. " " .. spaces .. v .. " " .. SEP_STRING
             end
         end
 
