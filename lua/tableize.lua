@@ -63,8 +63,8 @@ local function string_trim_stats(String)
     then
         return { "", 0, 0 }
     else
-        leftcut = leftlim - 1
-        rightcut = slen - rightlim
+        local leftcut = leftlim - 1
+        local rightcut = slen - rightlim
         return { string.sub(String, leftlim, rightlim), leftcut, rightcut }
     end
 end
@@ -99,10 +99,6 @@ local function find_limit(lines, starti, endi, dir)
     return endi
 end
 
-local function cells_for_line(line)
-    return string_split_trimmed(line, SEP_STRING)
-end
-
 local function get_trimed_lines(lines, start_line, end_line)
     local leftcut_min = 0xffffffff -- assume 32 bit
     local lines = table.move(lines, start_line, end_line, 1, {})
@@ -133,13 +129,13 @@ local function fill_matrix(lines)
     local matrix = {}
     for row,line in ipairs(lines)
     do
-        matrix[#matrix+1] = cells_for_line(line)
+        matrix[#matrix+1] = string_split_trimmed(line, SEP_STRING)
     end
     return matrix
 end
 
 local function line_is_horizontal_separator(cells)
-    is_hline = true
+    local is_hline = true
     for col, cell in ipairs(cells)
     do
         is_hline = is_hline and (string.len(cell) == 0 or cell:match("[-\\+ ]*") == cell) 
@@ -152,7 +148,7 @@ local function line_is_horizontal_separator(cells)
 end
 
 local function print_matrix(matrix, left_padding, contains_utf8)
-    max_column_len = {}
+    local max_column_len = {}
     local biggest_column = 0
     for row, cells in ipairs(matrix)
     do
@@ -181,29 +177,34 @@ local function print_matrix(matrix, left_padding, contains_utf8)
         spaces[i] = string.rep(" ", i)
     end
 
-    new_lines = {}
+    local new_lines = {}
     for row, cells in ipairs(matrix)
     do
-        tab = {}
+        local tab = {}
         tab[#tab + 1] = string.rep(" ", left_padding) .. SEP_STRING
 
         if line_is_horizontal_separator(cells)
         then
             for col, max_len in ipairs(max_column_len)
             do
-                separator = string.rep("-", max_column_len[col] + 2)
-                fmt = (col == #max_column_len) and "%s" .. SEP_STRING or "%s+"
+                local separator = string.rep("-", max_column_len[col] + 2)
+                local fmt = (col == #max_column_len) and "%s" .. SEP_STRING or "%s+"
                 tab[#tab + 1] = string.format(fmt, separator)
             end
         else
-            for col, max_len in ipairs(max_column_len)
+            local cell_len = #cells
+            for col=1,cell_len
             do
-                cell = cells[col] 
-                v = (cell == nil) and "" or cell
-                negate = (cell == nil) and 0 or (contains_utf8 and string_utf8_len(cell) or #cell)
-                space_num = max_column_len[col] - negate
+                local cell = cells[col] 
+                local negate = contains_utf8 and string_utf8_len(cell) or #cell
+                local space_num = max_column_len[col] - negate
 
-                tab[#tab + 1] = spaces[space_num+1] .. v .. SEP_STRING_LSPACE
+                tab[#tab + 1] = spaces[space_num+1] .. cell .. SEP_STRING_LSPACE
+            end
+
+            for col=cell_len+1,#max_column_len
+            do
+                tab[#tab + 1] = spaces[max_column_len[col]+1] .. SEP_STRING_LSPACE
             end
         end
 
