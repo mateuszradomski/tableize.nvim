@@ -1,5 +1,7 @@
 -- config
 local SEP_STRING = "|"
+local SEP_STRING_LSPACE = " |"
+local SEP_STRING_RSPACE = "| "
 local M = {}
 
 local function string_utf8_len(String)
@@ -183,8 +185,7 @@ local function print_matrix(matrix, left_padding, contains_utf8)
     for row, cells in ipairs(matrix)
     do
         tab = {}
-        tab[#tab + 1] = string.rep(" ", left_padding)
-        tab[#tab + 1] = SEP_STRING
+        tab[#tab + 1] = string.rep(" ", left_padding) .. SEP_STRING
 
         if line_is_horizontal_separator(cells)
         then
@@ -199,12 +200,10 @@ local function print_matrix(matrix, left_padding, contains_utf8)
             do
                 cell = cells[col] 
                 v = (cell == nil) and "" or cell
-                space_num = (cell == nil) and max_column_len[col] or max_column_len[col] - (contains_utf8 and string_utf8_len(cell) or #cell)
+                negate = (cell == nil) and 0 or (contains_utf8 and string_utf8_len(cell) or #cell)
+                space_num = max_column_len[col] - negate
 
-                tab[#tab + 1] = spaces[space_num+1]
-                tab[#tab + 1] = v
-                tab[#tab + 1] = " "
-                tab[#tab + 1] = SEP_STRING
+                tab[#tab + 1] = spaces[space_num+1] .. v .. SEP_STRING_LSPACE
             end
         end
 
