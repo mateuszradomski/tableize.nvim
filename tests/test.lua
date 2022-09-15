@@ -27,7 +27,7 @@ end
 function test_general()
     local input = {
         "| Testing | COl 2 | a |         ",
-        "    | +++ | | |   ",
+        "    | --- | | |   ",
         "          | asdf | COasdfjkll 2 | |",
         "| iouret28 | C238838888Ol 2 | |",
         "| l;asdjg;jb | COl 2hahahah | |",
@@ -48,10 +48,34 @@ function test_general()
     test_compare_lines(expected, new_lines)
 end
 
+function test_general_with_pluses()
+    local input = {
+        "| Testing | COl 2 | a |         ",
+        "    | +++ | | |   ",
+        "          | asdf | COasdfjkll 2 | |",
+        "| iouret28 | C238838888Ol 2 | |",
+        "| l;asdjg;jb | COl 2hahahah | |",
+        "| laksdflasdlklk | ",
+    }
+
+    local expected = {
+        "|        Testing |          COl 2 | a |",
+        "|            +++ |                |   |",
+        "|           asdf |   COasdfjkll 2 |   |",
+        "|       iouret28 | C238838888Ol 2 |   |",
+        "|     l;asdjg;jb |   COl 2hahahah |   |",
+        "| laksdflasdlklk |                |   |",
+    }
+
+    local result = Mod.tablize_under_cursor(input, { 1, 1 })
+    local new_lines, start_line, end_line = unpack(result)
+    test_compare_lines(expected, new_lines)
+end
+
 function test_general_with_indent_before()
     local input = {
         "  | Testing | COl 2 | a |         ",
-        "    | +++ | | |   ",
+        "    | --- | | |   ",
         "          | asdf | COasdfjkll 2 | |",
         "  | iouret28 | C238838888Ol 2 | |",
         "  | l;asdjg;jb | COl 2hahahah | |",
@@ -75,7 +99,7 @@ end
 function test_general_with_indent_before_min()
     local input = {
         "  | Testing | COl 2 | a |         ",
-        "    | +++ | | |   ",
+        "    | --- | | |   ",
         "          | asdf | COasdfjkll 2 | |",
         "  | iouret28 | C238838888Ol 2 | |",
         "  | l;asdjg;jb | COl 2hahahah | |",
@@ -99,7 +123,7 @@ end
 function test_general_with_indent_before_no_padding_one()
     local input = {
         "| Testing | COl 2 | a |         ",
-        "    | +++ | | |   ",
+        "    | --- | | |   ",
         "          | asdf | COasdfjkll 2 | |",
         "  | iouret28 | C238838888Ol 2 | |",
         "  | l;asdjg;jb | COl 2hahahah | |",
@@ -142,8 +166,48 @@ function test_polish_letters()
     test_compare_lines(expected, new_lines)
 end
 
+function test_aligning()
+    local input = {
+        "| Testing | COl 2 | a |         ",
+        "    | :-: | :-| -:|   ",
+        "          | asdf | COasdfjkll 2 | |",
+        "| iouret28 | C238838888Ol 2 | |",
+        "| iourt28 | C238838888Ol 2 | |",
+        "| l;asdjg;jb | COl 2hahahah | |",
+        "| laksdflasdlklk | ",
+        "    | :- | :-:| -|   ",
+        "          | asdf | COasdfjkll 2 | |",
+        "| iouret28 | C238838888Ol 2 | |",
+        "| iourt28 | C238838888Ol 2 | |",
+        "| l;asdjg;jb | COl 2hahahah | |",
+        "| laksdflasdlklk | ",
+    }
+
+    local expected = {
+        "|        Testing |          COl 2 | a |",
+        "|:--------------:|:---------------|--:|",
+        "|      asdf      | COasdfjkll 2   |   |",
+        "|    iouret28    | C238838888Ol 2 |   |",
+        "|     iourt28    | C238838888Ol 2 |   |",
+        "|   l;asdjg;jb   | COl 2hahahah   |   |",
+        "| laksdflasdlklk |                |   |",
+        "|:---------------|:--------------:|---|",
+        "| asdf           |  COasdfjkll 2  |   |",
+        "| iouret28       | C238838888Ol 2 |   |",
+        "| iourt28        | C238838888Ol 2 |   |",
+        "| l;asdjg;jb     |  COl 2hahahah  |   |",
+        "| laksdflasdlklk |                |   |",
+    }
+
+    local result = Mod.tablize_under_cursor(input, { 1, 1 })
+    local new_lines, start_line, end_line = unpack(result)
+    test_compare_lines(expected, new_lines)
+end
+
 test_general()
+test_general_with_pluses()
 test_general_with_indent_before()
 test_general_with_indent_before_min()
 test_general_with_indent_before_no_padding_one()
 test_polish_letters()
+test_aligning()

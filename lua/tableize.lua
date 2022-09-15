@@ -138,7 +138,7 @@ local function line_is_horizontal_separator(cells)
     local is_hline = true
     for col, cell in ipairs(cells)
     do
-        is_hline = is_hline and (string.len(cell) == 0 or cell:match("[-\\+ ]*") == cell) 
+        is_hline = is_hline and (string.len(cell) == 0 or cell:match("[-\\: ]*") == cell) 
         if not is_hline
         then
             break
@@ -150,6 +150,10 @@ end
 local function print_matrix(matrix, left_padding, contains_utf8)
     local max_column_len = {}
     local biggest_column = 0
+    local column_alignment = {}
+    local ALIGNMENT_LEFT = 1
+    local ALIGNMENT_CENTER = 2
+    local ALIGNMENT_RIGHT = 3
     for row, cells in ipairs(matrix)
     do
         if not line_is_horizontal_separator(cells)
@@ -162,6 +166,7 @@ local function print_matrix(matrix, left_padding, contains_utf8)
                 else
                     max_column_len[col] = math.max(max_column_len[col], contains_utf8 and string_utf8_len(cell) or #cell)
                 end
+                column_alignment[col] = ALIGNMENT_RIGHT
             end
         end
     end
@@ -185,9 +190,31 @@ local function print_matrix(matrix, left_padding, contains_utf8)
 
         if line_is_horizontal_separator(cells)
         then
-            for col, max_len in ipairs(max_column_len)
+            for col, cell in ipairs(cells)
             do
-                local separator = string.rep("-", max_column_len[col] + 2)
+                local separator = nil
+                if #cell >= 2 then
+                    local left_colon = cell:byte(1) == 0x3a
+                    local right_colon = cell:byte(#cell) == 0x3a 
+
+                    if left_colon and not right_colon then
+                        column_alignment[col] = ALIGNMENT_LEFT
+                        separator = ":" .. string.rep("-", max_column_len[col] + 1)
+                    elseif not left_colon and right_colon then
+                        column_alignment[col] = ALIGNMENT_RIGHT
+                        separator = string.rep("-", max_column_len[col] + 1) .. ":"
+                    elseif left_colon and right_colon then
+                        column_alignment[col] = ALIGNMENT_CENTER
+                        separator = ":" .. string.rep("-", max_column_len[col]) .. ":"
+                    else
+                        column_alignment[col] = ALIGNMENT_RIGHT
+                        separator = string.rep("-", max_column_len[col] + 2)
+                    end
+                else
+                    separator = string.rep("-", max_column_len[col] + 2)
+                    column_alignment[col] = ALIGNMENT_RIGHT
+                end
+
                 local fmt = (col == #max_column_len) and "%s" .. SEP_STRING or "%s|"
                 tab[#tab + 1] = string.format(fmt, separator)
             end
@@ -199,7 +226,18 @@ local function print_matrix(matrix, left_padding, contains_utf8)
                 local negate = contains_utf8 and string_utf8_len(cell) or #cell
                 local space_num = max_column_len[col] - negate
 
-                tab[#tab + 1] = spaces[space_num+1] .. cell .. SEP_STRING_LSPACE
+                if column_alignment[col] == ALIGNMENT_LEFT then
+                    tab[#tab + 1] = " " .. cell .. spaces[space_num+1] .. SEP_STRING
+                elseif column_alignment[col] == ALIGNMENT_CENTER then
+                    local half = math.floor(space_num/2)
+                    local left_num = half+half == space_num and half + 1 or half+2
+                    local right_num = half+1
+
+                    tab[#tab + 1] = spaces[left_num] .. cell .. spaces[right_num] .. SEP_STRING
+                elseif column_alignment[col] == ALIGNMENT_RIGHT then
+                    tab[#tab + 1] = spaces[space_num+1] .. cell .. SEP_STRING_LSPACE
+                end
+
             end
 
             for col=cell_len+1,#max_column_len
