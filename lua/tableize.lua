@@ -188,7 +188,7 @@ local function print_matrix(matrix, left_padding, contains_utf8)
             for col, max_len in ipairs(max_column_len)
             do
                 local separator = string.rep("-", max_column_len[col] + 2)
-                local fmt = (col == #max_column_len) and "%s" .. SEP_STRING or "%s+"
+                local fmt = (col == #max_column_len) and "%s" .. SEP_STRING or "%s|"
                 tab[#tab + 1] = string.format(fmt, separator)
             end
         else

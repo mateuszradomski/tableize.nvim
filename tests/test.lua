@@ -36,7 +36,7 @@ function test_general()
 
     local expected = {
         "|        Testing |          COl 2 | a |",
-        "|----------------+----------------+---|",
+        "|----------------|----------------|---|",
         "|           asdf |   COasdfjkll 2 |   |",
         "|       iouret28 | C238838888Ol 2 |   |",
         "|     l;asdjg;jb |   COl 2hahahah |   |",
@@ -60,7 +60,7 @@ function test_general_with_indent_before()
 
     local expected = {
         "  |        Testing |          COl 2 | a |",
-        "  |----------------+----------------+---|",
+        "  |----------------|----------------|---|",
         "  |           asdf |   COasdfjkll 2 |   |",
         "  |       iouret28 | C238838888Ol 2 |   |",
         "  |     l;asdjg;jb |   COl 2hahahah |   |",
@@ -84,7 +84,7 @@ function test_general_with_indent_before_min()
 
     local expected = {
         " |        Testing |          COl 2 | a |",
-        " |----------------+----------------+---|",
+        " |----------------|----------------|---|",
         " |           asdf |   COasdfjkll 2 |   |",
         " |       iouret28 | C238838888Ol 2 |   |",
         " |     l;asdjg;jb |   COl 2hahahah |   |",
@@ -108,7 +108,7 @@ function test_general_with_indent_before_no_padding_one()
 
     local expected = {
         "|        Testing |          COl 2 | a |",
-        "|----------------+----------------+---|",
+        "|----------------|----------------|---|",
         "|           asdf |   COasdfjkll 2 |   |",
         "|       iouret28 | C238838888Ol 2 |   |",
         "|     l;asdjg;jb |   COl 2hahahah |   |",
@@ -123,7 +123,7 @@ end
 function test_polish_letters()
     local input = {
         "|   Dzień | Zarobek [zł] |   Kto był na zmianie |",
-        "|----------+---------------+-----------------------|",
+        "|----------|---------------|-----------------------|",
         "|   Środa |           100 | Ania, Krzysiek, Tomek |",
         "| Czwartek |           100 |          Sylwia, Ania |",
         "|  Piątek |           400 |                       |",
@@ -131,7 +131,7 @@ function test_polish_letters()
 
     local expected = {
         "|    Dzień | Zarobek [zł] |    Kto był na zmianie |",
-        "|----------+--------------+-----------------------|",
+        "|----------|--------------|-----------------------|",
         "|    Środa |          100 | Ania, Krzysiek, Tomek |",
         "| Czwartek |          100 |          Sylwia, Ania |",
         "|   Piątek |          400 |                       |",
