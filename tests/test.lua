@@ -242,6 +242,58 @@ function test_dividiers()
     test_compare_lines(expected, new_lines)
 end
 
+function test_leading()
+    local input = {
+        "//  | Testing | COl 2 | a |         ",
+        "//   | -",
+        "//    | asdf | COasdfjkll 2 | |",
+        "//     | iouret28 | C238838888Ol 2 | |",
+        "//      | iourt28 | C238838888Ol 2 | |",
+        "//       | l;asdjg;jb | COl 2hahahah | |",
+        "// | laksdflasdlklk | ",
+    }
+
+    local expected = {
+        "// |        Testing |          COl 2 | a |",
+        "// |----------------|----------------|---|",
+        "// |           asdf |   COasdfjkll 2 |   |",
+        "// |       iouret28 | C238838888Ol 2 |   |",
+        "// |        iourt28 | C238838888Ol 2 |   |",
+        "// |     l;asdjg;jb |   COl 2hahahah |   |",
+        "// | laksdflasdlklk |                |   |",
+    }
+
+    local result = Mod.tablize_under_cursor(input, { 1, 1 })
+    local new_lines, start_line, end_line = unpack(result)
+    test_compare_lines(expected, new_lines)
+end
+
+function test_leading2()
+    local input = {
+        "##alksdfjaslkdfjaslnm,xv  | Testing | COl 2 | a |         ",
+        "##alksdfjaslkdfjaslnm,xv   | -",
+        "##alksdfjaslkdfjaslnm,xv    | asdf | COasdfjkll 2 | |",
+        "##alksdfjaslkdfjaslnm,xv     | iouret28 | C238838888Ol 2 | |",
+        "##alksdfjaslkdfjaslnm,xv      | iourt28 | C238838888Ol 2 | |",
+        "##alksdfjaslkdfjaslnm,xv       | l;asdjg;jb | COl 2hahahah | |",
+        "##alksdfjaslkdfjaslnm,xv | laksdflasdlklk | ",
+    }
+
+    local expected = {
+        "##alksdfjaslkdfjaslnm,xv |        Testing |          COl 2 | a |",
+        "##alksdfjaslkdfjaslnm,xv |----------------|----------------|---|",
+        "##alksdfjaslkdfjaslnm,xv |           asdf |   COasdfjkll 2 |   |",
+        "##alksdfjaslkdfjaslnm,xv |       iouret28 | C238838888Ol 2 |   |",
+        "##alksdfjaslkdfjaslnm,xv |        iourt28 | C238838888Ol 2 |   |",
+        "##alksdfjaslkdfjaslnm,xv |     l;asdjg;jb |   COl 2hahahah |   |",
+        "##alksdfjaslkdfjaslnm,xv | laksdflasdlklk |                |   |",
+    }
+
+    local result = Mod.tablize_under_cursor(input, { 1, 1 })
+    local new_lines, start_line, end_line = unpack(result)
+    test_compare_lines(expected, new_lines)
+end
+
 test_general()
 test_general_with_pluses()
 test_general_with_indent_before()
@@ -250,3 +302,4 @@ test_general_with_indent_before_no_padding_one()
 test_polish_letters()
 test_aligning()
 test_dividiers()
+test_leading()

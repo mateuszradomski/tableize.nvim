@@ -88,10 +88,10 @@ function string_split_trimmed(String, Separator)
     return parts
 end
 
-local function find_limit(lines, starti, endi, dir)
+local function find_limit(lines, starti, endi, dir, leading_length)
     for rowi=starti,endi,dir
     do
-        if not string_starts(string_trim(lines[rowi]), SEP_STRING)
+        if not string_starts(string_trim(string.sub(lines[rowi], leading_length + 1)), SEP_STRING)
         then
             return rowi - dir
         end
@@ -99,11 +99,12 @@ local function find_limit(lines, starti, endi, dir)
     return endi
 end
 
-local function get_trimed_lines(lines, start_line, end_line)
+local function get_trimed_lines(lines, leading_length, start_line, end_line)
     local leftcut_min = 0xffffffff -- assume 32 bit
     local lines = table.move(lines, start_line, end_line, 1, {})
     for i, line in ipairs(lines)
     do
+        line = string.sub(line, leading_length + 1)
         lines[i], leftcut, rightcut = unpack(string_trim_stats(line))
         leftcut_min = math.min(leftcut_min, leftcut)
     end
@@ -147,7 +148,7 @@ local function line_is_horizontal_separator(cells)
     return is_hline
 end
 
-local function print_matrix(matrix, left_padding, contains_utf8)
+local function print_matrix(matrix, leading, left_padding, contains_utf8)
     local max_column_len = {}
     local biggest_column = 0
     local column_alignment = {}
@@ -254,7 +255,7 @@ local function print_matrix(matrix, left_padding, contains_utf8)
             end
         end
 
-        new_lines[row] = table.concat(tab)
+        new_lines[row] = leading .. table.concat(tab)
     end
     return new_lines
 end
@@ -263,18 +264,23 @@ function M.tablize_under_cursor(lines, cursor_pos)
     local line_count = #lines
     local row, col = unpack(cursor_pos)
 
-    if not string_starts(string_trim(lines[row]), SEP_STRING)
+    local sep = string.find(lines[row], SEP_STRING)
+    if not sep
     then
         return nil
     end
+    local leading = string_trim(string.sub(lines[row], 1, sep - 1))
+    local leading_length = #leading
 
-    local start_line = find_limit(lines, row, 1, -1)
-    local end_line = find_limit(lines, row, line_count, 1)
+    -- if not string_starts(string_trim(lines[row]), SEP_STRING)
 
-    local table_lines, left_padding = unpack(get_trimed_lines(lines, start_line, end_line))
+    local start_line = find_limit(lines, row, 1, -1, leading_length)
+    local end_line = find_limit(lines, row, line_count, 1, leading_length)
+
+    local table_lines, left_padding = unpack(get_trimed_lines(lines, leading_length, start_line, end_line))
     local contains_utf8 = has_utf8(table_lines)
     local matrix = fill_matrix(table_lines)
-    local new_lines = print_matrix(matrix, left_padding, contains_utf8)
+    local new_lines = print_matrix(matrix, leading, left_padding, contains_utf8)
 
     return { new_lines, start_line, end_line }
 end
